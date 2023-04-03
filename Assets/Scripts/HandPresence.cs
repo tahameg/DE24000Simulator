@@ -27,7 +27,7 @@ namespace Katana.XR.Controller
         {
             m_physicsHandRb = m_physicsHandTransform.GetComponent<Rigidbody>();
             ShowVisualHand();
-            /*if (m_physicsHandRb != null)
+            if (m_physicsHandRb != null)
             {
                 m_initialized = true;
                 ShowPhysicsHand();
@@ -37,7 +37,7 @@ namespace Katana.XR.Controller
                 Debug.LogError("Physics hand transform should have a " +
                 "Rigidbody component attached");
                 ShowVisualHand();
-            }*/
+            }
         }
 
         private void ShowVisualHand()
