@@ -6,37 +6,34 @@ using UnityEngine;
 namespace Katana.XR.Interactables.HandPoseSystem
 {
     [Serializable]
-    public class HandStructuralInfo 
+    public class HandStructuralInfo : MonoBehaviour
     {
-        public FingerStructuralInfo[] FingerConfiguration;
+        public GameObject HandObject => m_handObject; 
 
-        public HandStructuralInfo(FingerStructuralInfo[] fingerConfiguration)
-            => FingerConfiguration = fingerConfiguration;
+        [SerializeField]
+        GameObject m_handObject;
+        public bool IsInitialized { get { return m_isInitialized; } }
+        bool m_isInitialized;
 
-        public HandStructuralInfo() { }
-    }
+        [Header("Hand Transforms", order = 0)]
+        public List<Transform> IndexFingerTransforms;
+        public List<Transform> MiddleFingerTransforms;
+        public List<Transform> RingFingerTransforms;
+        public List<Transform> PinkyFingerTransforms;
+        public List<Transform> ThumbTransforms;
 
-    [Serializable]
-    public class FingerStructuralInfo
-    {
-        public InitializedTransform[] JointTransforms;
-
-        public FingerStructuralInfo(InitializedTransform[] jointTransforms)
-            => JointTransforms = jointTransforms;
-
-        public FingerStructuralInfo() { }
-    }
-
-    [Serializable]
-    public struct InitializedTransform
-    {
-        public Transform TargetTransform;
-        public Pose InitialPose;
-
-        public InitializedTransform(Transform transform, Pose initialPose)
+        private void Awake()
         {
-            TargetTransform = transform;
-            InitialPose = initialPose;
+            m_isInitialized = (IndexFingerTransforms != null)
+                && (MiddleFingerTransforms != null)
+                && (RingFingerTransforms != null)
+                && (PinkyFingerTransforms != null)
+                && (ThumbTransforms != null);
+
+            if (!m_isInitialized)
+            {
+                Debug.LogWarning("All fingers should be assigned");
+            }
         }
     }
 }

@@ -3,19 +3,15 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 
-namespace Katana.XR.Interactables.HandPoseSystem
+namespace Katana.XR.Interactables.HandPoseSystem.Data
 {
     [Serializable]
-    public class HandRecord
+    public class HandRecord : ScriptableObject
     {
-        public FingerRecord[] FingerRecords;
-        public Pose RootPose;
-        public int FingerCount { get { return FingerRecords == null ? -1 : FingerRecords.Length; } }
-
-        public HandRecord(FingerRecord[] fingerRecords, Pose rootPose)
-        {
-            FingerRecords = fingerRecords;
-            RootPose = rootPose;
-        }
+        public List<Quaternion> IndexFingerRecords;
+        public List<Quaternion> MiddleFingerRecords;
+        public List<Quaternion> RingFingerRecords;
+        public List<Quaternion> PinkyFingerRecords;
+        public List<Quaternion> ThumbRecords;
     }
 }

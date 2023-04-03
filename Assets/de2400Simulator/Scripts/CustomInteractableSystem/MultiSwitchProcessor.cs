@@ -93,6 +93,7 @@ public class MultiSwitchProcessor : RotationProcessorBase
             {
                 base.SetValueTo(m_switchPoints[m_switchPoints.Count - 1]);
             }
+
             else if(value <= m_switchPoints[0])
             {
                 base.SetValueTo(m_switchPoints[0]);

@@ -15,30 +15,87 @@ public enum ParameterType
     Rotation
 }
 
+/// <summary>
+/// An abstract base class that utilizes some behaviours which simplifies implementation of rotation based behaviour.
+/// For this component to work, there must be an CustomInteractable set and configured. The component gives an angle value
+/// with the Value member variable, that is the total rotating movement applied to the component by an interactor since the start.
+/// The Value paremeter is unbounded and signed. It can give results that can be bigger that 360 which can be used for calculating the rotational cycles.
+/// <see>Examples/Samples/RotationalInteractions.scene</see>
+/// </summary>
 [RequireComponent(typeof(CustomInteractable))]
 public abstract class RotationProcessorBase : MonoBehaviour, IXRGrabProcess
 {
+    /// <summary>
+    /// The target transform that is used for the axis calculations.If UseWorldSpace is unchecked, the rotation 
+    /// axis is interpreted as a local axis of this transform. If Set to null, transform of the gameObject is used.
+    /// </summary>
+    [Tooltip("The target transform that is used for the axis calculations. " +
+        "If UseWorldSpace is unchecked, the rotation axis is interpreted as a local axis of this transform. " +
+        "If Set to null, transform of the gameObject is used.")]
     [SerializeField]
     protected Transform TargetTransform;
+
+    /// <summary>
+    /// Defines the behaviour of component when the parameters are changed on runtime. For example, when the rotation
+    /// limits are changed during runtime: Reset Values sets current value to 0 and starts applying the limits with the
+    /// current transform. Update Transform Transform rotates to inside the limits if it is out of new limits."
+    /// </summary>
+    [Tooltip("Defines the behaviour of component when the parameters are changed on runtime. For example," +
+        "when the rotation limits are changed during runtime:" +
+        "\n On \"ResetValues\" sets current value to 0 and starts applying the limits with the current transform.\n" +
+        "\n On \"UpdateTransform\" Transform rotates to the boundaries of the limits if it is out of the new limits.")]
     [SerializeField]
     ConfigurationBehaviour m_configurationBehaviour;
+
+    /// <summary>
+    /// Defines what component of the interacting interactor. If it is "Position", position change is used for calculating the angular 
+    /// movement. If it is "Rotation", rotation change is used for calculating the angular movement.
+    /// </summary>
+    [Tooltip("Defines what component of the interacting interactor. If it is \"Position\", position change is used for calculating the " +
+        "angular movement. If it is \"Rotation\", rotation change is used for calculating the angular movement.")]
     [SerializeField]
     ParameterType m_usedParameterType;
 
+    /// <summary>
+    /// Defines the transform that is at the center of the rotation. Rotation is calculated around the object.
+    /// </summary>
+    [Tooltip("Defines the transform that is at the center of the rotation. Rotation is calculated around the object.")]
     [SerializeField]
     public Transform m_rotatePointReference;
+
+    /// <summary>
+    /// Defines the axis that is used for rotation calculation.
+    /// If UseWorldSpace is set, the axis is interpreted as a world space axis.
+    /// </summary>
+    [Tooltip("Defines the axis that is used for rotation calculation. " +
+        "If UseWorldSpace is set, the axis is interpreted as a world space axis.")]
     [SerializeField]
     public Vector3 m_rotationAxis;
+
+    /// <summary>
+    /// If UseWorldSpace is set, the axis is interpreted as a world space axis.
+    /// </summary>
+    [Tooltip("If UseWorldSpace is set, the axis is interpreted as a world space axis.")]
     [SerializeField]
     public bool m_useWorldSpace;
     
+    /// <summary>
+    /// If is set, the given limits are taken account. In this case, the component won't 
+    /// give values that are out of the boundary that is defined by ValueMin and ValueMax
+    /// </summary>
+    [Tooltip("If is set, the given limits are taken account. In this case, the component won't" +
+        " give values that are out of the boundary that is defined by ValueMin and ValueMax")]
     [SerializeField]
     public bool m_hasLimits;
-    [SerializeField]
-    public float m_valueMax;
+
     [SerializeField]
     public float m_valueMin;
+    [SerializeField]
+    public float m_valueMax;
 
+    /// <summary>
+    /// Defines the transform that is at the center of the rotation. Rotation is calculated around the object.
+    /// </summary>
     public Transform RotatePointReference
     {
         get => m_rotatePointReference;
@@ -61,14 +118,26 @@ public abstract class RotationProcessorBase : MonoBehaviour, IXRGrabProcess
         set => UpdateRotationAxis(value, m_useWorldSpace);
     }
 
+    /// <summary>
+    /// Gives bounded rotation angle of the TargetTransform since the start or reset. ( 0 - 360 degreees)
+    /// </summary>
     public float RotationAngle => GetCurrentAngle();
 
+    /// <summary>
+    /// Amount of the total rotating movement applied to the component by an interactor since the start. Can be bigger than 
+    /// 360 or smaller than -360. This can be used for calculating the cycle count. 
+    /// (Etc. a Value of 720 the rotational movement is enough to rotate the TargetTransform 2 times)
+    /// </summary>
     public float Value
     {
         get => m_value;
         set => SetValueTo(value);
     }
 
+    /// <summary>
+    /// If is set, the given limits are taken account. In this case, the component won't 
+    /// give values that are out of the boundary that is defined by ValueMin and ValueMax
+    /// </summary>
     public bool HasLimits
     {
         get => m_hasLimits;
@@ -79,9 +148,12 @@ public abstract class RotationProcessorBase : MonoBehaviour, IXRGrabProcess
         }
     }
 
+    /// <summary>
+    /// Gives the world space rotation axis.
+    /// </summary>
     public Vector3 AbsoluteRotationAxis
     {
-        get => m_useWorldSpace ? m_rotationAxis : TargetTransform.TransformVector(m_rotationAxis);
+        get => m_useWorldSpace ? m_rotationAxis : TargetTransform.TransformDirection(m_rotationAxis);
     }
 
     /// <summary>
@@ -138,7 +210,7 @@ public abstract class RotationProcessorBase : MonoBehaviour, IXRGrabProcess
 
     [SerializeField]
     UnityEvent<float> m_onGrabEnd;
-    public UnityEvent<float> GrabEndede => m_onGrabEnd;
+    public UnityEvent<float> GrabEnded => m_onGrabEnd;
 
     protected virtual void Awake()
     {
@@ -198,7 +270,7 @@ public abstract class RotationProcessorBase : MonoBehaviour, IXRGrabProcess
         Vector3 abs = AbsoluteRotationAxis.normalized;
         Vector3 helperVector = abs != Vector3.up ? Vector3.up : Vector3.right;
         m_referenceZeroVector = Vector3.Cross(AbsoluteRotationAxis, helperVector).normalized;
-        m_localRefererenceZeroVector = TargetTransform.InverseTransformVector(m_referenceZeroVector);
+        m_localRefererenceZeroVector = TargetTransform.InverseTransformDirection(m_referenceZeroVector);
 
     }
 
@@ -246,19 +318,15 @@ public abstract class RotationProcessorBase : MonoBehaviour, IXRGrabProcess
         m_valueMax = limitMax;
     }
 
-    public void ResetProcessor(bool resetTransform=true)
+    public void ResetProcessor()
     {
-        if(resetTransform)
-        {
-            SetValueTo(0);
-        }
         m_value = 0;
     }
     
 
     public float GetCurrentAngle()
     {
-        Vector3 referenceCurrent = TargetTransform.TransformVector(m_localRefererenceZeroVector);
+        Vector3 referenceCurrent = TargetTransform.TransformDirection(m_localRefererenceZeroVector);
         return Vector3.SignedAngle(m_referenceZeroVector, referenceCurrent, AbsoluteRotationAxis);
     }
 
