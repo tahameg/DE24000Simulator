@@ -11,7 +11,7 @@ namespace Katana.XR.Interactables.HandPoseSystem
         public HandStructuralInfo StructuralInfo => m_handStructuralInfo;
         [SerializeField]
         float m_frameDuration = 0.01f;
-        bool m_isInitialized => (m_handStructuralInfo == null ? false : m_handStructuralInfo.IsInitialized);
+        public bool IsInitialized => (m_handStructuralInfo == null ? false : m_handStructuralInfo.IsInitialized);
 
         HandStructuralInfo m_handStructuralInfo;
 
@@ -24,7 +24,7 @@ namespace Katana.XR.Interactables.HandPoseSystem
 
         public void ApplyRecord(HandRecord record)
         {
-            if (!m_isInitialized) return;
+            if (!IsInitialized) return;
             ApplyFingerRecord(m_handStructuralInfo.IndexFingerTransforms, record.IndexFingerRecords, 1f);
             ApplyFingerRecord(m_handStructuralInfo.MiddleFingerTransforms, record.MiddleFingerRecords, 1f);
             ApplyFingerRecord(m_handStructuralInfo.RingFingerTransforms, record.RingFingerRecords, 1f);
@@ -35,7 +35,7 @@ namespace Katana.XR.Interactables.HandPoseSystem
 
         public void ApplyRecord(HandRecord record, float animationDuration)
         {
-            if (!m_isInitialized) return;
+            if (!IsInitialized) return;
             float duration = Mathf.Clamp(animationDuration, 0, animationDuration);
             if (animationRoutine != null)
             {

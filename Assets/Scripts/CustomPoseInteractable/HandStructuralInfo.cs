@@ -12,8 +12,9 @@ namespace Katana.XR.Interactables.HandPoseSystem
 
         [SerializeField]
         GameObject m_handObject;
-        public bool IsInitialized { get { return m_isInitialized; } }
+        public bool IsInitialized => m_isAwake ? m_isInitialized : GetIsInitialized();
         bool m_isInitialized;
+        bool m_isAwake;
 
         [Header("Hand Transforms", order = 0)]
         public List<Transform> IndexFingerTransforms;
@@ -24,16 +25,22 @@ namespace Katana.XR.Interactables.HandPoseSystem
 
         private void Awake()
         {
-            m_isInitialized = (IndexFingerTransforms != null)
-                && (MiddleFingerTransforms != null)
-                && (RingFingerTransforms != null)
-                && (PinkyFingerTransforms != null)
-                && (ThumbTransforms != null);
-
+            m_isInitialized = GetIsInitialized();
+            m_isAwake = true;
+            Debug.Log(" awaken!! ");
             if (!m_isInitialized)
             {
                 Debug.LogWarning("All fingers should be assigned");
             }
+        }
+
+        bool GetIsInitialized()
+        {
+            return (IndexFingerTransforms != null)
+                && (MiddleFingerTransforms != null)
+                && (RingFingerTransforms != null)
+                && (PinkyFingerTransforms != null)
+                && (ThumbTransforms != null);
         }
     }
 }

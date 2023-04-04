@@ -33,6 +33,7 @@ namespace Katana.XR.Interactables.HandPoseSystem.Utils
 
             return returnTranform;
         }
+
         public static List<Transform> GetAllJointsWithPrefix(Transform transform, string prefix)
         {
             List<Transform> found = new List<Transform>(); ;

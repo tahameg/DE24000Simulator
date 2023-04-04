@@ -30,6 +30,10 @@ public class TeleportationManager : MonoBehaviour
     bool m_teleportModeActive;
     Vector2 m_lastRotationInput;
 
+    [SerializeField]
+    XRDirectInteractor interactor;
+       
+
     private void Start()
     {
         Initialize();
@@ -45,6 +49,10 @@ public class TeleportationManager : MonoBehaviour
 
     void OnTeleportStart(InputAction.CallbackContext context)
     {
+        if (!Cancel.action.ReadValue<bool>())
+        {
+
+        }
         if (!m_teleportModeActive)
         {
             m_interactorManager.ActivateInteractor(m_teleportationInteractor);
