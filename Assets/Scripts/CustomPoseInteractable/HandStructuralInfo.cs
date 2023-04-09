@@ -27,7 +27,6 @@ namespace Katana.XR.Interactables.HandPoseSystem
         {
             m_isInitialized = GetIsInitialized();
             m_isAwake = true;
-            Debug.Log(" awaken!! ");
             if (!m_isInitialized)
             {
                 Debug.LogWarning("All fingers should be assigned");
@@ -41,6 +40,22 @@ namespace Katana.XR.Interactables.HandPoseSystem
                 && (RingFingerTransforms != null)
                 && (PinkyFingerTransforms != null)
                 && (ThumbTransforms != null);
+        }
+
+        public string GetStructureHash()
+        {
+            if (IsInitialized)
+            {
+                string hashed = "";
+                hashed += PinkyFingerTransforms.Count.ToString()
+                + RingFingerTransforms.Count.ToString()
+                + MiddleFingerTransforms.Count.ToString()
+                + IndexFingerTransforms.Count.ToString()
+                + ThumbTransforms.Count.ToString();
+                return hashed;
+            }
+
+            return null;
         }
     }
 }

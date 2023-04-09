@@ -8,13 +8,13 @@ namespace Katana.XR.Interactables.HandPoseSystem
     [RequireComponent(typeof(HandStructuralInfo))]
     public class HandPoseOperator : MonoBehaviour
     {
-        public HandStructuralInfo StructuralInfo => m_handStructuralInfo;
+        public HandStructuralInfo StructuralInfo => m_handStructuralInfo == null ?
+            GetComponent<HandStructuralInfo>() : m_handStructuralInfo;
         [SerializeField]
         float m_frameDuration = 0.01f;
-        public bool IsInitialized => (m_handStructuralInfo == null ? false : m_handStructuralInfo.IsInitialized);
-
         HandStructuralInfo m_handStructuralInfo;
 
+        public bool IsInitialized => StructuralInfo.IsInitialized;
         IEnumerator animationRoutine;
 
         private void Awake()
@@ -25,26 +25,51 @@ namespace Katana.XR.Interactables.HandPoseSystem
         public void ApplyRecord(HandRecord record)
         {
             if (!IsInitialized) return;
-            ApplyFingerRecord(m_handStructuralInfo.IndexFingerTransforms, record.IndexFingerRecords, 1f);
-            ApplyFingerRecord(m_handStructuralInfo.MiddleFingerTransforms, record.MiddleFingerRecords, 1f);
-            ApplyFingerRecord(m_handStructuralInfo.RingFingerTransforms, record.RingFingerRecords, 1f);
-            ApplyFingerRecord(m_handStructuralInfo.PinkyFingerTransforms, record.PinkyFingerRecords, 1f);
-            ApplyFingerRecord(m_handStructuralInfo.ThumbTransforms, record.ThumbRecords, 1f);
+            if(StructuralInfo.GetStructureHash() != record.structuralHash)
+            {
+                Debug.Log(StructuralInfo.GetStructureHash());
+                Debug.LogError("Hand record structure is not applicable to the given structural info.");
+                return;
+            }
+
+            ApplyFingerRecord(StructuralInfo.IndexFingerTransforms, record.IndexFingerRecords, 1f);
+            ApplyFingerRecord(StructuralInfo.MiddleFingerTransforms, record.MiddleFingerRecords, 1f);
+            ApplyFingerRecord(StructuralInfo.RingFingerTransforms, record.RingFingerRecords, 1f);
+            ApplyFingerRecord(StructuralInfo.PinkyFingerTransforms, record.PinkyFingerRecords, 1f);
+            ApplyFingerRecord(StructuralInfo.ThumbTransforms, record.ThumbRecords, 1f);
         }
 
 
         public void ApplyRecord(HandRecord record, float animationDuration)
         {
             if (!IsInitialized) return;
-            float duration = Mathf.Clamp(animationDuration, 0, animationDuration);
+            if (StructuralInfo.GetStructureHash() != record.structuralHash)
+            {
+                Debug.Log(StructuralInfo.GetStructureHash());
+                Debug.LogError("Hand record structure is not applicable to the given structural info.");
+                return;
+            }
+            float duration = Mathf.Clamp(animationDuration, 0, Mathf.Abs(animationDuration));
             if (animationRoutine != null)
             {
                 StopCoroutine(animationRoutine);
                 animationRoutine = null;
             }
 
-            animationRoutine = ApplyRecordRoutine(record, animationDuration);
-            StartCoroutine(animationRoutine);
+            if(Application.IsPlaying(this))
+            {
+                animationRoutine = ApplyRecordRoutine(record, duration);
+                Debug.Log("Duration is " + duration);
+                StartCoroutine(animationRoutine);
+            }
+            else
+            {
+                ApplyFingerRecord(StructuralInfo.IndexFingerTransforms, record.IndexFingerRecords);
+                ApplyFingerRecord(StructuralInfo.MiddleFingerTransforms, record.MiddleFingerRecords);
+                ApplyFingerRecord(StructuralInfo.RingFingerTransforms, record.RingFingerRecords);
+                ApplyFingerRecord(StructuralInfo.PinkyFingerTransforms, record.PinkyFingerRecords);
+                ApplyFingerRecord(StructuralInfo.ThumbTransforms, record.ThumbRecords);
+            }
         }
 
         bool ApplyFingerRecord(List<Transform> targetTransforms, List<Quaternion> sourceData, float lerpRatio = 1f)

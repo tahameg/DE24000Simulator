@@ -5,29 +5,39 @@ using Katana.XR.Interactables.HandPoseSystem.Data;
 
 namespace Katana.XR.Interactables.HandPoseSystem
 {
-    [RequireComponent(typeof(HandPoseOperator))]
+    [RequireComponent(typeof(HandStructuralInfo))]
     public class HandPoseRecorder : MonoBehaviour
     {
         [Tooltip("This is folder of the path that the hand poses will be saved on. This is a relative path")]
         public string DataSaveDirectory = "Katana/Interaction/Data/HandPose";
-        public string DataSavePrefix = "HandPose_";
-        HandPoseOperator m_handPoseOperator;
-        public HandPoseOperator HandPoseOperator => 
-            m_handPoseOperator == null ? GetComponent<HandPoseOperator>() : m_handPoseOperator;
+        public string DataSaveName = "HandPose_";
 
+        public List<HandRecord> TestHandRecords = new List<HandRecord>();
+
+        HandStructuralInfo m_handStructuralInfo;
+        HandPoseOperator m_handPoseOperator;
+        public float transitionTime = 0.4f;
+        public HandStructuralInfo HandStructuralInfo =>
+            m_handStructuralInfo == null ? GetComponent<HandStructuralInfo>() : m_handStructuralInfo;
+
+        public HandPoseOperator HandPoseOperator =>
+            m_handPoseOperator == null ? GetComponent<HandPoseOperator>() : m_handPoseOperator;
         private void Awake()
         {
+            m_handStructuralInfo = GetComponent<HandStructuralInfo>();
             m_handPoseOperator = GetComponent<HandPoseOperator>();
         }
+
         public HandRecord GetHandRecord()
         {
-            if (!HandPoseOperator.IsInitialized) return null;
-            HandRecord record = new HandRecord();
-            record.IndexFingerRecords = GetFingerRotations(HandPoseOperator.StructuralInfo.IndexFingerTransforms);
-            record.MiddleFingerRecords = GetFingerRotations(HandPoseOperator.StructuralInfo.MiddleFingerTransforms);
-            record.RingFingerRecords = GetFingerRotations(HandPoseOperator.StructuralInfo.RingFingerTransforms);
-            record.PinkyFingerRecords = GetFingerRotations(HandPoseOperator.StructuralInfo.PinkyFingerTransforms);
-            record.ThumbRecords = GetFingerRotations(HandPoseOperator.StructuralInfo.ThumbTransforms);
+            if (!HandStructuralInfo.IsInitialized) return null;
+            HandRecord record = ScriptableObject.CreateInstance<HandRecord>();
+            record.structuralHash = HandStructuralInfo.GetStructureHash();
+            record.IndexFingerRecords = GetFingerRotations(HandStructuralInfo.IndexFingerTransforms);
+            record.MiddleFingerRecords = GetFingerRotations(HandStructuralInfo.MiddleFingerTransforms);
+            record.RingFingerRecords = GetFingerRotations(HandStructuralInfo.RingFingerTransforms);
+            record.PinkyFingerRecords = GetFingerRotations(HandStructuralInfo.PinkyFingerTransforms);
+            record.ThumbRecords = GetFingerRotations(HandStructuralInfo.ThumbTransforms);
             return record;
         }
 
