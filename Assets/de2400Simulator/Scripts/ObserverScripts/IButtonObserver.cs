@@ -9,7 +9,12 @@ public abstract class IButtonObserver: MonoBehaviour
     public string buttonName;
     public Action<string> OnOpen;
     public Action<string> OnClose;
-    
+    public Action<string> OnKrankOneOn;
+    public Action<string> OnKrankSecondOn;
+    public Action<string> OnKrankOneOff;
+    public Action<string> OnKrankSecondOff;
+
+
     public void Start()
     {
         //if (subscribedButton != null)

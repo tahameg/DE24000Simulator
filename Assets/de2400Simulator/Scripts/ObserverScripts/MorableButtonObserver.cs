@@ -5,9 +5,14 @@ using UnityEngine;
 
 public class MorableButtonObserver : IButtonObserver
 {
+    public float angleValue;
     public void Start()
     {
         base.Start();
+    }
+    private void Update()
+    {
+        OnValueChange(angleValue); 
     }
     public override void OnValueChange(float buttonValue)
     {

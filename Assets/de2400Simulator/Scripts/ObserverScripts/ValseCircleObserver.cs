@@ -12,6 +12,7 @@ public class ValseCircleObserver : IButtonObserver
     float pivotAngle = 0f;
     float firstAngle = 0f;
     bool firstAngleTaken = true;
+    public string buttonName;
 
     void Start()
     {
@@ -34,17 +35,19 @@ public class ValseCircleObserver : IButtonObserver
         if ((buttonValue- firstAngle) >= 90)
         {
             IsGasOpen = true;
-            pivotAngle = 90f;
+            pivotAngle = 90f;  
         }
 
         if ((buttonValue- firstAngle) >= 105 && IsGasOpen)
         {
             IsFirstKrank = true;
+            OnKrankOneOn(buttonName);
         }
 
         if ((buttonValue - firstAngle) >= 105 && IsGasOpen && IsFirstKrank)
         {
             IssecondKrank = true;
+            OnKrankSecondOn(buttonName);
         }
 
     }
