@@ -6,6 +6,7 @@ public class TrainMove : MonoBehaviour
 {
     public List<Transform> followTransformList;
     public int trainSpeed;
+    int firstTrainSpeed;
     List<Point> movePointList;
     Point p1, p2;
     private bool firstState;
@@ -20,6 +21,7 @@ public class TrainMove : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        firstTrainSpeed = trainSpeed;
         movePointList = new List<Point>();
         foreach (var item in followTransformList)
         {
@@ -32,17 +34,23 @@ public class TrainMove : MonoBehaviour
 
     void GetNewPoint()
     {
-        if (!(movePointList.Count == nextPoint+1))
+        if (!(movePointList.Count == nextPoint + 1))
         {
             if (Isforward)
+            {
                 nextPoint++;
-            else
+            }
+            else if (nextPoint > 0)
+            {
                 nextPoint--;
+            }
         }
-        else
-        {
-            endOfPoints = true;
-        }
+        if ((movePointList.Count == nextPoint + 1) && !Isforward)
+            nextPoint--;
+        //else
+        //{
+        //    endOfPoints = true;
+        //}
         //this.p1 = movePointList[nextPoint];
         this.p1 = new Point();
         this.p1.positionPoint = transform.position;
@@ -61,7 +69,7 @@ public class TrainMove : MonoBehaviour
             p2 = null;
             firstState = Isforward;
         }
-           
+
         if (p1 == null || p2 == null)
         {
             GetNewPoint();
@@ -74,6 +82,13 @@ public class TrainMove : MonoBehaviour
             //Lerp Rotatio
             transform.LookAt(p2.positionPoint);
             //Move Train
+            if (firstTrainSpeed != trainSpeed)
+            {
+                firstTrainSpeed = trainSpeed;
+                distance = Vector3.Distance(p1.positionPoint, p2.positionPoint);
+                timeToReachTarget = distance / trainSpeed;
+            }
+
             gameObject.transform.position = Vector3.Lerp(p1.positionPoint, p2.positionPoint, timeElapsed / timeToReachTarget);
         }
         else
@@ -118,12 +133,9 @@ public class TrainMove : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(!endOfPoints)
+        if (!IsStop)
         {
-            if(!IsStop)
-            {
-                MoveForwardTrain();  
-            }
+            MoveForwardTrain();
         }
     }
     class Point
