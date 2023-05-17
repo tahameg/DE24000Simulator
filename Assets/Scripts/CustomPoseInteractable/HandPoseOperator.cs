@@ -59,7 +59,6 @@ namespace Katana.XR.Interactables.HandPoseSystem
             if(Application.IsPlaying(this))
             {
                 animationRoutine = ApplyRecordRoutine(record, duration);
-                Debug.Log("Duration is " + duration);
                 StartCoroutine(animationRoutine);
             }
             else
