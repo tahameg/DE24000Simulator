@@ -75,21 +75,26 @@ public class TrainMove : MonoBehaviour
             GetNewPoint();
         }
 
-
         if (timeElapsed < timeToReachTarget)
         {
             timeElapsed += Time.deltaTime;
-            //Lerp Rotatio
-            transform.LookAt(p2.positionPoint);
+
             //Move Train
             if (firstTrainSpeed != trainSpeed)
             {
                 firstTrainSpeed = trainSpeed;
-                distance = Vector3.Distance(p1.positionPoint, p2.positionPoint);
+                distance = Vector3.Distance(transform.position, p2.positionPoint);
                 timeToReachTarget = distance / trainSpeed;
+                timeElapsed = 0;
+                p1.positionPoint = gameObject.transform.position; 
+                return;
             }
 
+            //Lerp Rotatio
+            transform.LookAt(p2.positionPoint);
+         
             gameObject.transform.position = Vector3.Lerp(p1.positionPoint, p2.positionPoint, timeElapsed / timeToReachTarget);
+            //gameObject.transform.position = Vector3.Lerp(gameObject.transform.position, p2.positionPoint, timeElapsed / timeToReachTarget);
         }
         else
         {
@@ -101,34 +106,6 @@ public class TrainMove : MonoBehaviour
         {
             GetNewPoint();
         }
-    }
-
-    bool MoveBackwardTrain()
-    {
-        if (p1 == null || p2 == null)
-            return false;
-
-        if (timeElapsed < timeToReachTarget)
-        {
-            timeElapsed += Time.deltaTime;
-            //Lerp Rotation
-            if (Isforward)
-                transform.LookAt(p2.positionPoint);
-            else
-                transform.LookAt(-p2.positionPoint);
-            //Move Train
-            gameObject.transform.position = Vector3.Lerp(p1.positionPoint, p2.positionPoint, timeElapsed / timeToReachTarget);
-        }
-        else
-        {
-            timeElapsed = 0;
-            return false;
-        }
-
-        if (p1.positionPoint == p2.positionPoint)
-            return false;
-
-        return true;
     }
     // Update is called once per frame
     void Update()
