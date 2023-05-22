@@ -50,44 +50,4 @@ namespace SparkVision.HandPoseSystem
         void HandleActivateStart(HandPoseProviderArgs args);
         void HandleActivateEnd(HandPoseProviderArgs args);
     }
-
-    /*
-    public class HandPoseProvider : MonoBehaviour
-    {
-        [SerializeField]
-        List<CustomHandPoseConfiguration> m_leftHandConfigurationsList;
-        [SerializeField]
-        List<CustomHandPoseConfiguration> m_rightHandConfigurationsList;
-
-        Dictionary<Vector3, CustomHandPoseConfiguration> m_leftHandConfigurationsDict;
-        Dictionary<Vector3, CustomHandPoseConfiguration> m_rightHandConfigurationsDict;
-
-
-        private void Awake()
-        {
-            
-        }
-
-        void Initialize()
-        {
-            m_leftHandConfigurationsDict = new Dictionary<Vector3, CustomHandPoseConfiguration>();
-            if (m_leftHandConfigurationsList != null)
-            {
-                foreach (var config in m_leftHandConfigurationsList)
-                {
-                    m_leftHandConfigurationsDict.Add(config.LocalPosition, config);
-                }
-            }
-
-            m_rightHandConfigurationsDict = new Dictionary<Vector3, CustomHandPoseConfiguration>();
-            if (m_rightHandConfigurationsList != null)
-            {
-                foreach (var config in m_rightHandConfigurationsList)
-                {
-                    m_rightHandConfigurationsDict.Add(config.LocalPosition, config);
-                }
-            }
-        }
-    }
-    */
 }

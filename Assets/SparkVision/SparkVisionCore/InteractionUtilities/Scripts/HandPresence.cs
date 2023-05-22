@@ -72,57 +72,54 @@ namespace SparkVision.InteractionUtilities
         void OnHoverEnter(HoverEnterEventArgs args)
         {
             var hoverable = args.interactableObject.transform.GetComponent<IHandPoseHoverable>();
-            if(hoverable != null)
-            {
-                m_currentlyHoveredPoseable = hoverable;
-                var hoverArgs = new HandPoseProviderArgs(transform,
-                        Handedness,
-                        m_handPoseOperator,
-                        m_directInteractor);
-                hoverable.HandleHoverStart(hoverArgs);
-            }
+            if (hoverable == null) return;
+
+            m_currentlyHoveredPoseable = hoverable;
+            var hoverArgs = new HandPoseProviderArgs(transform,
+                    Handedness,
+                    m_handPoseOperator,
+                    m_directInteractor);
+            hoverable.HandleHoverStart(hoverArgs);
         }
 
         void OnHoverExit(HoverExitEventArgs args)
         {
             var hoverable = args.interactableObject.transform.GetComponent<IHandPoseHoverable>();
-            if (hoverable != null)
-            {
-                var hoverArgs = new HandPoseProviderArgs(transform,
-                    Handedness,
-                    m_handPoseOperator,
-                    m_directInteractor);
-                hoverable.HandleHoverEnd(hoverArgs);
-                m_currentlyHoveredPoseable = null;
-            }
+            if (hoverable == null) return;
+
+            var hoverArgs = new HandPoseProviderArgs(transform,
+                Handedness,
+                m_handPoseOperator,
+                m_directInteractor);
+            hoverable.HandleHoverEnd(hoverArgs);
+            m_currentlyHoveredPoseable = null;
         }
 
         void OnSelectEnter(SelectEnterEventArgs args)
         {
             var selectable = args.interactableObject.transform.GetComponent<IHandPoseSelectable>();
-            if(selectable != null)
-            {
-                var selectArgs = new HandPoseProviderArgs(transform,
-                    Handedness,
-                    m_handPoseOperator,
-                    m_directInteractor);
-                selectable.HandleSelectStart(selectArgs);
-                m_currentlySelectedPoseable = selectable;
-            }
+            if(selectable == null) return;
+
+            var selectArgs = new HandPoseProviderArgs(transform,
+                Handedness,
+                m_handPoseOperator,
+                m_directInteractor);
+            selectable.HandleSelectStart(selectArgs);
+            m_currentlySelectedPoseable = selectable;
         }
 
         void OnSelectExit(SelectExitEventArgs args)
         {
             var selectable = args.interactableObject.transform.GetComponent<IHandPoseSelectable>();
-            if (selectable != null)
-            {
-                var selectArgs = new HandPoseProviderArgs(transform,
-                    Handedness,
-                    m_handPoseOperator,
-                    m_directInteractor);
-                selectable.HandleSelectEnd(selectArgs);
-                m_currentlySelectedPoseable = null;
-            }
+            if (selectable == null) return;
+
+            var selectArgs = new HandPoseProviderArgs(transform,
+                Handedness,
+                m_handPoseOperator,
+                m_directInteractor);
+
+            selectable.HandleSelectEnd(selectArgs);
+            m_currentlySelectedPoseable = null;
         }
 
         void UpdatePoses()

@@ -7,6 +7,7 @@ namespace SparkVision.HandPoseSystem
     [RequireComponent(typeof(HandStructuralInfo))]
     public class HandPoseOperator : MonoBehaviour
     {
+        public GameObject HandObject => StructuralInfo.HandObject;
         public HandStructuralInfo StructuralInfo => m_handStructuralInfo == null ?
             GetComponent<HandStructuralInfo>() : m_handStructuralInfo;
         [SerializeField]

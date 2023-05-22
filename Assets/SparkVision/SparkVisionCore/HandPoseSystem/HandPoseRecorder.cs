@@ -16,6 +16,7 @@ namespace SparkVision.HandPoseSystem
         HandStructuralInfo m_handStructuralInfo;
         HandPoseOperator m_handPoseOperator;
         public float transitionTime = 0.4f;
+
         public HandStructuralInfo HandStructuralInfo =>
             m_handStructuralInfo == null ? GetComponent<HandStructuralInfo>() : m_handStructuralInfo;
 
