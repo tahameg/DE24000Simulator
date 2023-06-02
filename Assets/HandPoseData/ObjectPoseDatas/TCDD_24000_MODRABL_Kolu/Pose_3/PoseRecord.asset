@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ab544610dd132249bdae1c06a991a86, type: 3}
+  m_Name: PoseRecord
+  m_EditorClassIdentifier: 
+  Handedness: 1
+  HandRecord: {fileID: 11400000, guid: 9a38839c18524ec45a85310352fd96c7, type: 2}
+  InitialHandPose:
+    position: {x: -0.059410725, y: 0.050222274, z: -0.11064131}
+    rotation: {x: -0.008266182, y: 0.5046938, z: 0.08255551, w: 0.85930234}
+  HandPivotPosition: {x: 0, y: 0, z: 0}
+  CanRotateAroundAxis: 0
+  RotationAxis: {x: 0, y: 0, z: 0}
+  MaxAngle: 0
+  MinAngle: 0

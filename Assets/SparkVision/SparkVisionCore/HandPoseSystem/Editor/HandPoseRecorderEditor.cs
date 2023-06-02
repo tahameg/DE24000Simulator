@@ -15,12 +15,16 @@ namespace SparkVision.HandPoseSystem.Editor
         {
             base.OnInspectorGUI();
             HandPoseRecorder recorder = (HandPoseRecorder)target;
-            if(GUILayout.Button("Record Hand Pose"))
+            if (HandRecordModeManager.IsRecordModeActive )
             {
-                HandRecord record = recorder.GetHandRecord();
-                IOUtils.SaveScriptableObject(recorder.DataSaveDirectory, recorder.DataSaveName, record);
-                recorder.TestHandRecords.Add(record);
+                if (GUILayout.Button("Record Hand Pose"))
+                {
+                    HandRecord record = recorder.GetHandRecord();
+                    IOUtils.SaveScriptableObject(recorder.DataSaveDirectory, recorder.DataSaveName, record);
+                    recorder.TestHandRecords.Add(record);
+                }
             }
+            
 
             for (int i = 0; i < recorder.TestHandRecords.Count; i++)
             {

@@ -43,5 +43,14 @@ namespace SparkVision.HandPoseSystem.EditorUtils
             }
             return true;
         }
+
+        public static int GetFolderCount(string relativeFolderDirectory)
+        {
+            string absolutePath = $@"{Application.dataPath}/{relativeFolderDirectory}";
+            bool isValidFolderDirectory = absolutePath.IndexOfAny(Path.GetInvalidPathChars()) <= 0;
+            if (!isValidFolderDirectory) return -1;
+            if (!Directory.Exists(absolutePath)) return -1;
+            return Directory.GetDirectories(absolutePath).Length;
+        }
     }
 }

@@ -6,11 +6,17 @@ using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit;
 using SparkVision.HandPoseSystem;
 
-namespace SparkVision.InteractionUtilities
+namespace SparkVision.HandPoseSystem
 {
     public class HandPresence : MonoBehaviour
     {
         public Handedness Handedness;
+        [HideInInspector]
+        public HandPoseOperator HandPoseOperator
+        {
+            get => m_handPoseOperator;
+            set => m_handPoseOperator = value;
+        }
 
         [SerializeField]
         XRDirectInteractor m_directInteractor;
@@ -20,6 +26,7 @@ namespace SparkVision.InteractionUtilities
 
         bool isGrabbing => GrabAction.action.IsPressed();
         bool isTriggering => TriggerAction.action.IsPressed();
+        
         GameObject m_visualHandObject => m_handPoseOperator.StructuralInfo.HandObject;
 
         [SerializeField]
@@ -32,9 +39,16 @@ namespace SparkVision.InteractionUtilities
         IHandPoseHoverable m_currentlyHoveredPoseable;
         IHandPoseSelectable m_currentlySelectedPoseable;
 
+        HandPoseProviderArgs handArgs;
+        
         public InputActionProperty TriggerAction;
         public InputActionProperty GrabAction;
 
+        bool m_isPoseFree => (
+            m_currentlyHoveredPoseable == null
+            && m_currentlySelectedPoseable == null && !HandRecordModeManager.IsRecordModeActive
+            );
+        
         private void Start()
         {
             SetVisualHandVisible(true);
@@ -47,6 +61,10 @@ namespace SparkVision.InteractionUtilities
 
             GrabAction.action.performed += OnGrabPress;
             GrabAction.action.canceled += OnGrabRelease;
+            handArgs = new HandPoseProviderArgs(transform,
+                Handedness,
+                m_handPoseOperator,
+                m_directInteractor);
             UpdatePoses();
         }
 
@@ -73,13 +91,8 @@ namespace SparkVision.InteractionUtilities
         {
             var hoverable = args.interactableObject.transform.GetComponent<IHandPoseHoverable>();
             if (hoverable == null) return;
-
             m_currentlyHoveredPoseable = hoverable;
-            var hoverArgs = new HandPoseProviderArgs(transform,
-                    Handedness,
-                    m_handPoseOperator,
-                    m_directInteractor);
-            hoverable.HandleHoverStart(hoverArgs);
+            hoverable.HandleHoverStart(handArgs);
         }
 
         void OnHoverExit(HoverExitEventArgs args)
@@ -87,12 +100,9 @@ namespace SparkVision.InteractionUtilities
             var hoverable = args.interactableObject.transform.GetComponent<IHandPoseHoverable>();
             if (hoverable == null) return;
 
-            var hoverArgs = new HandPoseProviderArgs(transform,
-                Handedness,
-                m_handPoseOperator,
-                m_directInteractor);
-            hoverable.HandleHoverEnd(hoverArgs);
+            hoverable.HandleHoverEnd(handArgs);
             m_currentlyHoveredPoseable = null;
+            if (m_currentlySelectedPoseable == null) UpdatePoses();
         }
 
         void OnSelectEnter(SelectEnterEventArgs args)
@@ -100,14 +110,10 @@ namespace SparkVision.InteractionUtilities
             var selectable = args.interactableObject.transform.GetComponent<IHandPoseSelectable>();
             if(selectable == null) return;
 
-            var selectArgs = new HandPoseProviderArgs(transform,
-                Handedness,
-                m_handPoseOperator,
-                m_directInteractor);
-            selectable.HandleSelectStart(selectArgs);
+            selectable.HandleSelectStart(handArgs);
             m_currentlySelectedPoseable = selectable;
         }
-
+        
         void OnSelectExit(SelectExitEventArgs args)
         {
             var selectable = args.interactableObject.transform.GetComponent<IHandPoseSelectable>();
@@ -120,6 +126,15 @@ namespace SparkVision.InteractionUtilities
 
             selectable.HandleSelectEnd(selectArgs);
             m_currentlySelectedPoseable = null;
+            
+            if(m_currentlyHoveredPoseable != null)
+            {
+                m_currentlyHoveredPoseable.HandleHoverStart(handArgs);
+            }
+            else
+            {
+                UpdatePoses();
+            }
         }
 
         void UpdatePoses()
@@ -140,13 +155,13 @@ namespace SparkVision.InteractionUtilities
 
         void OnTriggerPress(InputAction.CallbackContext context)
         {
-            if(m_currentlyHoveredPoseable == null && m_currentlySelectedPoseable == null)
+            if(m_isPoseFree)
             {
                 UpdatePoses();
             }
-            else if(m_currentlyHoveredPoseable != null)
+            else if(m_currentlySelectedPoseable != null)
             {
-                var activateable = (IHandPoseActivateable)m_currentlyHoveredPoseable;
+                var activateable = m_currentlySelectedPoseable as IHandPoseActivateable;
                 if(activateable != null)
                 {
                     var activateArgs = new HandPoseProviderArgs(transform,
@@ -159,27 +174,23 @@ namespace SparkVision.InteractionUtilities
         }
         void OnTriggerRelease(InputAction.CallbackContext context)
         {
-            if (m_currentlyHoveredPoseable == null && m_currentlySelectedPoseable == null)
+            if (m_isPoseFree)
             {
                 UpdatePoses();
             }
-            else if (m_currentlyHoveredPoseable != null)
+            else if (m_currentlySelectedPoseable != null)
             {
-                var activateable = (IHandPoseActivateable)m_currentlyHoveredPoseable;
+                var activateable = m_currentlySelectedPoseable as IHandPoseActivateable;
                 if (activateable != null)
                 {
-                    var activateArgs = new HandPoseProviderArgs(transform,
-                    Handedness,
-                    m_handPoseOperator,
-                    m_directInteractor);
-                    activateable.HandleActivateEnd(activateArgs);
+                    activateable.HandleActivateEnd(handArgs);
                 }
             }
         }
 
         void OnGrabPress(InputAction.CallbackContext context)
         {
-            if (m_currentlyHoveredPoseable == null && m_currentlySelectedPoseable == null)
+            if (m_isPoseFree)
             {
                 UpdatePoses();
             }
@@ -187,7 +198,7 @@ namespace SparkVision.InteractionUtilities
 
         void OnGrabRelease(InputAction.CallbackContext context)
         {
-            if (m_currentlyHoveredPoseable == null && m_currentlySelectedPoseable == null)
+            if (m_isPoseFree)
             {
                 UpdatePoses();
             }
