@@ -1,31 +1,74 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 
 namespace SparkVision.HandPoseSystem
 {
+    [ExecuteInEditMode]
     public class MockHandsReferenceHolder : MonoBehaviour
     {
         [SerializeField]
         HandPoseOperator m_leftMockHandPrefab;
         [SerializeField]
         HandPoseOperator m_rightMockHandPrefab;
-
+        
+        [SerializeField]
         HandPoseOperator m_leftMockHand;
+        [SerializeField]
         HandPoseOperator m_rightMockHand;
 
         public static MockHandsReferenceHolder Instance;
 
         private void Start()
         {
-            if(Instance == null)
+            if (Instance != null) return;
+            
+            Instance = this;
+
+            LoadResources();
+        }
+
+        public void LoadResources()
+        {
+            var left = (GameObject)Resources.Load("LeftHand");
+            var right = (GameObject)Resources.Load("RightHand");
+            //Remove if the references have already initialized
+            if (m_leftMockHand != null)
             {
-                Instance = this;
+                DestroyImmediate(m_leftMockHand.gameObject);
+                m_leftMockHand = null;
             }
 
-            m_leftMockHand = Instantiate(m_leftMockHandPrefab).GetComponent<HandPoseOperator>();
-            m_rightMockHand = Instantiate(m_rightMockHandPrefab).GetComponent<HandPoseOperator>();
+            if (m_rightMockHand != null)
+            {
+                DestroyImmediate(m_rightMockHand.gameObject);
+                m_rightMockHand = null;
+            }
+
+
+            if (m_leftMockHandPrefab == null)
+            {
+                m_leftMockHand = Instantiate(left).GetComponent<HandPoseOperator>();
+                m_leftMockHandPrefab = left.GetComponent<HandPoseOperator>();
+            }
+            else
+            {
+                m_leftMockHand = Instantiate(m_leftMockHandPrefab).GetComponent<HandPoseOperator>();
+            }
+
+            if (m_rightMockHandPrefab == null)
+            {
+                m_rightMockHand = Instantiate(right).GetComponent<HandPoseOperator>();
+                m_rightMockHandPrefab = right.GetComponent<HandPoseOperator>();
+            }
+            else
+            {
+                m_rightMockHand = Instantiate(m_rightMockHandPrefab).GetComponent<HandPoseOperator>();
+            }
+
+            ClearHand(Handedness.Left);
+            ClearHand(Handedness.Right);
         }
 
         public HandPoseOperator BringHand(Handedness handedness, Transform parent = null)

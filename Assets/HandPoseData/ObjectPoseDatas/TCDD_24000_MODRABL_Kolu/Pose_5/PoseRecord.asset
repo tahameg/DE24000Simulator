@@ -17,8 +17,8 @@ MonoBehaviour:
   InitialHandPose:
     position: {x: -0.06154497, y: 0.05719701, z: -0.058047768}
     rotation: {x: 0.023030194, y: -0.83512276, z: -0.041982252, w: -0.5479755}
-  HandPivotPosition: {x: 0, y: 0, z: 0}
-  CanRotateAroundAxis: 0
-  RotationAxis: {x: 0, y: 0, z: 0}
+  HandPivotPosition: {x: 0, y: -0.01, z: 0.09}
+  CanRotateAroundAxis: 1
+  RotationAxis: {x: 0, y: 0, z: -1}
   MaxAngle: 0
   MinAngle: 0

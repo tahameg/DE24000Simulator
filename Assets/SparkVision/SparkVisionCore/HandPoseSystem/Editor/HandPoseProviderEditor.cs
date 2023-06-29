@@ -13,19 +13,71 @@ namespace SparkVision.HandPoseSystem.Editor
     [CustomEditor(typeof(HandPoseProvider))]
     public class HandPoseProviderEditor : UnityEditor.Editor
     {
-        bool m_isListInitialized;
-        int m_selectedIndex = 0;
-        int m_selectedIndexBefore = 0;
-        GUIContent[] itemList;
-        Dictionary<string, Type> infoBaseClasses;
-        HandPoseProvider source;
-        Material mat;
+        private bool m_isListInitialized;
+        private bool m_showConstantPoses;
+        private bool m_showFloatingCirclePoses;
+
+        private int m_selectedIndex = 0;
+        private GUIContent[] m_itemList;
+        private Dictionary<string, Type> m_infoBaseClasses;
+        private HandPoseProvider m_source;
+        private MockHandsReferenceHolder m_mockReferenceHolder;
+        private Material m_mat;
+        
+        private ObjectHandPoseInfoBase m_editedHandPoseInfo;
+        private bool m_editingActive;
+        
+        private Vector2[] m_scrollPoses;
         private void OnEnable()
         {
             FetchList();
             var shader = Shader.Find("Hidden/Internal-Colored");
-            mat = new Material(shader);
-            source = (HandPoseProvider)target;
+            m_mat = new Material(shader);
+            m_source = (HandPoseProvider)target;
+
+            m_mockReferenceHolder = FindObjectOfType<MockHandsReferenceHolder>();
+
+            if(m_mockReferenceHolder == null)
+            {
+                m_mockReferenceHolder = CreateMockReferenceHolder();
+            }
+            
+            if(m_scrollPoses == null)
+            {
+                m_scrollPoses = new Vector2[2];
+            }
+        }
+
+        public void OnSceneGUI()
+        {
+            if(m_source.InteractionPoses == null) return;
+
+            foreach (var pose in m_source.InteractionPoses)
+            {
+                if (pose is ConstantPointHandPoseInfo info)
+                {
+                    HandleConstantPointPoseDraw(info);
+                }
+                
+                
+            }
+            if (m_editingActive)
+            {
+                
+                foreach (var pose in m_source.InteractionPoses)
+                {
+                    
+                }
+            }
+        }
+
+        void HandleConstantPointPoseDraw(ConstantPointHandPoseInfo info)
+        {
+            Handles.color = m_editedHandPoseInfo == info ? Color.yellow :
+                info.Handedness == Handedness.Left ? Color.blue : Color.red;
+            Vector3 anchorPosition = m_source.transform.InverseTransformPoint(info.InitialHandPose.position);
+                    
+            Handles.DrawWireCube(anchorPosition, Vector3.one * 0.2f);
         }
 
         public override void OnInspectorGUI()
@@ -35,14 +87,14 @@ namespace SparkVision.HandPoseSystem.Editor
             
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Interaction Pose Infos");
-            m_selectedIndex = EditorGUILayout.Popup(m_selectedIndex, itemList);
+            m_selectedIndex = EditorGUILayout.Popup(m_selectedIndex, m_itemList);
             GUILayout.EndHorizontal();
             
             GUILayout.BeginHorizontal();
 
             if (GUILayout.Button("Create New Info"))
             {
-                source.gameObject.AddComponent(infoBaseClasses[itemList[m_selectedIndex].text]);
+                m_source.gameObject.AddComponent(m_infoBaseClasses[m_itemList[m_selectedIndex].text]);
             }
             if (GUILayout.Button("Refresh"))
             {
@@ -57,14 +109,138 @@ namespace SparkVision.HandPoseSystem.Editor
                     HandleRecord();
                 }
             }
+
+            m_showConstantPoses = EditorGUILayout.Foldout(m_showConstantPoses, "Constant Point Poses", EditorStyles.foldoutHeader);
+            
+            if(m_showConstantPoses)
+            {
+                int counter = 1;
+
+                m_scrollPoses[0] = EditorGUILayout.BeginScrollView(m_scrollPoses[0], GUILayout.Height(500f));
+
+                foreach (var pose in m_source.InteractionPoses)
+                {
+                    if (pose is ConstantPointHandPoseInfo)
+                    {
+                        RenderConstantInteractionPose((ConstantPointHandPoseInfo)pose, $"Pose-{counter}");
+                        counter++;
+                    }
+                }
+                EditorGUILayout.EndScrollView();
+
+            }
+
+            m_showFloatingCirclePoses = EditorGUILayout.Foldout(m_showFloatingCirclePoses, "Floating Circle Poses", EditorStyles.foldoutHeader);
+
+            if(m_showFloatingCirclePoses)
+            {
+                foreach (var pose in m_source.InteractionPoses)
+                {
+                    if (pose is FloatingCircleHandPoseInfo)
+                    {
+                        RenderFloatingInteractionPose((FloatingCircleHandPoseInfo)pose);
+                    }
+                }
+            }
+        }
+        
+        void RenderConstantInteractionPose(ConstantPointHandPoseInfo pose, string header)
+        {
+            SerializedObject obj = new SerializedObject(pose);
+            EditorGUILayout.Space(15f);
+            Rect lastRect = GUILayoutUtility.GetLastRect();
+            if (lastRect.width == 1f)
+            {
+                lastRect.width = EditorGUIUtility.currentViewWidth;
+                lastRect.height = 220f;
+                
+            }
+            else
+            {
+                lastRect.height = 220f;
+                lastRect.y += 15f;
+            }
+            EditorGUI.DrawRect(lastRect, new Color(0.1f, 0.1f, 0.1f));
+            
+            Color bgColor = GUI.backgroundColor;
+            Color textColor = GUI.color;
+            
+            bool editible = m_editingActive && pose == m_editedHandPoseInfo;
+            if (!editible)
+            {
+                GUI.backgroundColor = new Color(0.2f,0.2f,0.2f);
+                GUI.color = Color.gray;
+            }
+            
+            EditorGUILayout.LabelField(header, EditorStyles.boldLabel);
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.PropertyField(obj.FindProperty("Handedness"));
+            EditorGUILayout.PropertyField(obj.FindProperty("HandRecord"));
+            EditorGUILayout.PropertyField(obj.FindProperty("InitialHandPose"));
+            EditorGUILayout.PropertyField(obj.FindProperty("CanRotateAroundAxis"));
+            EditorGUILayout.PropertyField(obj.FindProperty("RotationAxis"));
+            EditorGUILayout.PropertyField(obj.FindProperty("MaxAngle"));
+            EditorGUILayout.PropertyField(obj.FindProperty("MinAngle"));
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.Space(15f);
+            
+            GUI.backgroundColor = bgColor;
+            GUI.color = textColor;
+            if (editible)
+            {
+                obj.ApplyModifiedProperties();
+            }
+            
+
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.BeginHorizontal();
+            
+            if (GUILayout.Button("Remove"))
+            {
+                
+            }
+            
+            if(m_editedHandPoseInfo != null && m_editedHandPoseInfo == pose)
+            {
+                if (GUILayout.Button("Finish Editing"))
+                {
+                    m_editedHandPoseInfo = null;
+                    m_editingActive = false;
+                    // Should Finish editing
+                }
+                EditorGUILayout.EndHorizontal();
+                if(GUILayout.Button("Revert"))
+                {
+                    
+                }
+
+            }
+            else
+            {
+                if (GUILayout.Button("Edit"))
+                {
+                    m_editedHandPoseInfo = pose;
+                    m_editingActive = true;
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+            
+
+            EditorGUILayout.EndVertical();
         }
 
+        
+        void RenderFloatingInteractionPose(FloatingCircleHandPoseInfo pose)
+        {
+        }
+
+        // ReSharper disable Unity.PerformanceAnalysis
         void HandleRecord()
         {
-            if (source.CurrentlyHoveringInteractor == null) return;
+            if (m_source.CurrentlyHoveringInteractor == null) return;
             string saveFolderPath;
             if (!CreateSaveDirectory(out saveFolderPath)) return;
-            string selectedClassName = itemList[m_selectedIndex].text;
+            string selectedClassName = m_itemList[m_selectedIndex].text;
             switch(selectedClassName)
             {
                 case "FloatingCircleHandPoseInfo":
@@ -78,53 +254,55 @@ namespace SparkVision.HandPoseSystem.Editor
 
         }
 
+        // ReSharper disable Unity.PerformanceAnalysis
         void HandleFloatingRecord(string savePath)
         {
-            var presence = source.CurrentlyHoveringInteractor.transform.parent.transform.GetComponent<HandPresence>();
+            var presence = m_source.CurrentlyHoveringInteractor.transform.parent.transform.GetComponent<HandPresence>();
             if (presence == null) return;
             Transform handTransform = presence.HandPoseOperator.HandObject.transform.GetChild(0);
-            HandRecord record = source.GetHandRecord(presence.HandPoseOperator.StructuralInfo);
+            HandRecord record = m_source.GetHandRecord(presence.HandPoseOperator.StructuralInfo);
             FloatingCircleHandPoseInfo poseInfo = new FloatingCircleHandPoseInfo();
             
             poseInfo.Handedness = presence.Handedness;
             
             poseInfo.HandRecord = record;
             
-            Vector3 posePosition = source.transform.InverseTransformPoint(handTransform.position);
-            Quaternion poseRotation = Quaternion.Inverse(source.transform.rotation) * handTransform.rotation;
+            Vector3 posePosition = m_source.transform.InverseTransformPoint(handTransform.position);
+            Quaternion poseRotation = Quaternion.Inverse(m_source.transform.rotation) * handTransform.rotation;
             poseInfo.InitialHandPose = new Pose(posePosition, poseRotation);
             
             poseInfo.UpVector = Vector3.up;
-            Vector3 realUp = source.transform.TransformVector(poseInfo.UpVector);
+            Vector3 realUp = m_source.transform.TransformVector(poseInfo.UpVector);
 
-            Vector3 newCenter = source.transform.position;
+            Vector3 newCenter = m_source.transform.position;
             poseInfo.Radius = Vector3.ProjectOnPlane((handTransform.position - newCenter), realUp).magnitude;
 
             IOUtils.SaveScriptableObject(savePath, "HandRecord", record);
             IOUtils.SaveScriptableObject(savePath, "PoseRecord", poseInfo);
-            source.InteractionPoses.Add(poseInfo);
+            m_source.InteractionPoses.Add(poseInfo);
         }
 
         void HandleConstantRecord(string savePath)
         {
-            var presence = source.CurrentlyHoveringInteractor.transform.parent.transform.GetComponent<HandPresence>();
+            var presence = m_source.CurrentlyHoveringInteractor.transform.parent.transform.GetComponent<HandPresence>();
             if (presence == null) return;
             Transform handTransform = presence.HandPoseOperator.HandObject.transform.GetChild(0);
             Debug.Log(handTransform.name);
-            HandRecord record = source.GetHandRecord(presence.HandPoseOperator.StructuralInfo);
-            ConstantPointHandPoseInfo poseInfo = new ConstantPointHandPoseInfo();
+            HandRecord record = m_source.GetHandRecord(presence.HandPoseOperator.StructuralInfo);
+            ConstantPointHandPoseInfo poseInfo = CreateInstance<ConstantPointHandPoseInfo>();
 
             poseInfo.Handedness = presence.Handedness;
 
             poseInfo.HandRecord = record;
 
-            Vector3 posePosition = source.transform.InverseTransformPoint(handTransform.position);
-            Quaternion poseRotation = Quaternion.Inverse(source.transform.rotation) * handTransform.rotation;
+            Transform sourceTransform = m_source.transform;
+            Vector3 posePosition = sourceTransform.InverseTransformPoint(handTransform.position);
+            Quaternion poseRotation = Quaternion.Inverse(sourceTransform.rotation) * handTransform.rotation;
             poseInfo.InitialHandPose = new Pose(posePosition, poseRotation);
 
             IOUtils.SaveScriptableObject(savePath, "HandRecord", record);
             IOUtils.SaveScriptableObject(savePath, "PoseRecord", poseInfo);
-            source.InteractionPoses.Add(poseInfo);
+            m_source.InteractionPoses.Add(poseInfo);
         }
 
 
@@ -161,17 +339,25 @@ namespace SparkVision.HandPoseSystem.Editor
 
         GUIContent[] FetchList()
         {
-            infoBaseClasses = GetObjectHandInfoBaseClasses();
-            GUIContent[] returnList = new GUIContent[infoBaseClasses.Count];
+            m_infoBaseClasses = GetObjectHandInfoBaseClasses();
+            GUIContent[] returnList = new GUIContent[m_infoBaseClasses.Count];
             int counter = 0;
-            foreach(var info in infoBaseClasses)
+            foreach(var info in m_infoBaseClasses)
             {
                 GUIContent newContent = EditorGUIUtility.TrTextContent(info.Key);
                 returnList[counter] = newContent;
                 counter++;
             }
-            itemList = returnList;
+            m_itemList = returnList;
             return returnList;
+        }
+
+        MockHandsReferenceHolder CreateMockReferenceHolder()
+        {
+            GameObject holderObject = new GameObject("MockHandReferenceHolder");
+            var holder = holderObject.AddComponent<MockHandsReferenceHolder>();
+            holder.LoadResources();
+            return holder;
         }
     }
 }

@@ -35,7 +35,6 @@ namespace SparkVision.HandPoseSystem
         [SerializeField]
         HandRecord m_rightProximityPose;
 
-        [SerializeField]
         public List<ObjectHandPoseInfoBase> InteractionPoses;
         
         public void HandleHoverEnd(HandPoseProviderArgs args)
@@ -135,7 +134,10 @@ namespace SparkVision.HandPoseSystem
                 ConstantPointHandPoseInfo info = m_selectedInfo as ConstantPointHandPoseInfo;
                 if (!info.CanRotateAroundAxis) return;
 
-                Vector3 perpVector = info.RotationAxis.normalized != Vector3.up ? Vector3.up : Vector3.right;
+                Vector3 perpVector = new Vector3();
+                if ((info.RotationAxis.normalized != Vector3.up) || (info.RotationAxis.normalized != (-Vector3.up)))
+                    perpVector = Vector3.up;
+                else perpVector = Vector3.right;
                 m_referenceZeroVector = Vector3.Cross(perpVector, info.RotationAxis).normalized;
             }
 
@@ -173,7 +175,7 @@ namespace SparkVision.HandPoseSystem
             if (m_currentlyOperatedControllerTransform == null) return;
             if (m_currentMockHandTransform == null) return;
 
-            Quaternion rotationDiff = Quaternion.Inverse(m_lastRotation) * m_currentlyOperatedControllerTransform.rotation;
+            Quaternion rotationDiff = m_currentlyOperatedControllerTransform.rotation * Quaternion.Inverse(m_lastRotation);
             Vector3 rotationAxis = GetWorldAxis(transform, info.RotationAxis);
             Vector3 referenceVector = GetWorldAxis(transform, m_referenceZeroVector);
             Vector3 rotatedReference = (rotationDiff * referenceVector).normalized;
@@ -183,18 +185,17 @@ namespace SparkVision.HandPoseSystem
             m_lastRotation = m_currentlyOperatedControllerTransform.rotation;
         }
 
-        void RotateAround(Transform transform, Vector3 pivotPoint, Quaternion rot)
+        void RotateAround(Transform handTransform, Vector3 pivotPoint, Quaternion rot)
         {
-            transform.position = rot * (transform.position - pivotPoint) + pivotPoint;
-            transform.rotation = rot * transform.rotation;
+            handTransform.position = rot * (handTransform.position - pivotPoint) + pivotPoint;
+            handTransform.rotation = rot * handTransform.rotation;
         }
         private void Update()
         {
             if (m_selectedInfo == null) return;
 
-            if(m_selectedInfo is ConstantPointHandPoseInfo)
+            if(m_selectedInfo is ConstantPointHandPoseInfo info)
             {
-                ConstantPointHandPoseInfo info = m_selectedInfo as ConstantPointHandPoseInfo;
                 if (!info.CanRotateAroundAxis) return;
                 HandleConstantRotationFreedom(info);
             }
